@@ -8,6 +8,7 @@
   ],
   "require": {
     "php": ">=7.4",
+    "elao/enum": "^1.11",
     "symfony/console": "^5.1"
   },
   "autoload": {
