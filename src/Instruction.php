@@ -6,7 +6,7 @@ namespace TaHUoP;
 
 class Instruction
 {
-    private string $text;
+    public string $text;
     private int $line;
     private int $originalFileLine;
 

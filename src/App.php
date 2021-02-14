@@ -32,7 +32,7 @@ class App extends SingleCommandApplication
             $outputFileContent = $this->parser->parseFile($inputFilePath);
 
             $outputFilePath = $input->getArgument('outputFilePath') ?? $this->getOutputFilePath($inputFilePath);
-            if (file_put_contents($outputFilePath, $outputFileContent)) {
+            if (file_put_contents($outputFilePath, $outputFileContent) !== false) {
                 $output->writeln("File $outputFilePath was successfully built.");
             } else {
                 $output->writeln("<fg=red>Unable to write to file $outputFilePath.</>");

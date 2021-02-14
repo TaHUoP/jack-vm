@@ -17,15 +17,16 @@ class OperationFactory
 
     /**
      * @param Instruction $instruction
+     * @param string $filename
      * @return OperationInterface
      * @throws Exception
      */
-    public static function getOperation(Instruction $instruction): OperationInterface
+    public static function getOperation(Instruction $instruction, string $filename): OperationInterface
     {
         if (preg_match(self::ARITHMETIC_OPERATION_REGEX, $instruction->text, $matches)) {
             return new ArithmeticOperation(ArithmeticOperationType::get($matches[1]));
         } elseif (preg_match(self::MEMORY_ACCESS_OPERATION_REGEX, $instruction->text, $matches)) {
-            return new MemoryAccessOperation(MemoryAccessOperationType::get($matches[1]), MemorySegment::get($matches[2]), $matches[3]);
+            return new MemoryAccessOperation(MemoryAccessOperationType::get($matches[1]), MemorySegment::get($matches[2]), $matches[3], $filename);
         } else {
             throw new Exception("Invalid instruction \"$instruction->text\" on line " . $instruction->getOriginalFileLine() . '.');
         }
