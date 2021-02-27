@@ -116,25 +116,24 @@ class MemoryAccessOperation implements OperationInterface
     {
         $changeStackPositionOperator = $this->type === MemoryAccessOperationType::PUSH() ? '+' : '-';
 
-        if (in_array($this->segment->getValue(), [MemorySegment::CONSTANT, MemorySegment::POINTER])) {
+        if (in_array($this->segment, [MemorySegment::CONSTANT(), MemorySegment::POINTER()], true)) {
             $memoryAddress = $this->segment === MemorySegment::CONSTANT()
                 ? $this->arg
                 : ($this->arg === 0 ? 'THIS' : 'THAT');
 
-            if ($this->type === MemoryAccessOperationType::PUSH()) {
-                $typeDependentPart =
-                    "@{$memoryAddress}
-                    D=M
-                                        
-                    @SP\n";
-            } else {
-                $typeDependentPart =
-                    "@{$memoryAddress}
-                    D=A\n";
-            }
-
-            $typeDependentPart .= "A=M\n";
-        } elseif (in_array($this->segment->getValue(), [MemorySegment::STATIC, MemorySegment::TEMP])) {
+            $typeDependentPart = sprintf(
+                "@{$memoryAddress}
+                D=%s
+                A=M\n",
+                match ($this->type) {
+                    MemoryAccessOperationType::PUSH() =>
+                        "M
+                        @SP\n",
+                    MemoryAccessOperationType::POP() =>
+                        "A\n"
+                }
+            );
+        } elseif (in_array($this->segment, [MemorySegment::STATIC(), MemorySegment::TEMP()], true)) {
             $memoryAddress = $this->segment === MemorySegment::STATIC()
                 ? "{$this->filename}.{$this->arg}"
                 : 5 + $this->arg;
@@ -155,31 +154,30 @@ class MemoryAccessOperation implements OperationInterface
                     @{$memoryAddress}\n";
             }
         } else {
-            $typeDependentPart =
+            $typeDependentPart = sprintf(
                 "@{$this->segment->getHackSegmentAlias()}
                 D=M
                 @{$this->arg}
-                D=D+A\n";
-
-            if ($this->type === MemoryAccessOperationType::PUSH()) {
-                $typeDependentPart .=
-                    "A=D
-                    D=M
-                    
-                    @SP\n";
-            } else {
-                $typeDependentPart .=
-                    "@R13
-                    M=D            
-                    
-                    @SP
-                    A=M
-                    D=M            
-                    
-                    @R13\n";
-            }
-
-            $typeDependentPart .= "A=M\n";
+                D=D+A\n
+                %s
+                A=M\n",
+                match ($this->type) {
+                    MemoryAccessOperationType::PUSH() =>
+                        "A=D
+                        D=M
+                        
+                        @SP\n",
+                    MemoryAccessOperationType::POP() =>
+                        "@R13
+                        M=D            
+                        
+                        @SP
+                        A=M
+                        D=M            
+                        
+                        @R13\n"
+                }
+            );
         }
 
         return
@@ -188,5 +186,10 @@ class MemoryAccessOperation implements OperationInterface
             
             @SP
             M=M{$changeStackPositionOperator}1\n";
+    }
+
+    public static function getRegexp(): string
+    {
+        return '/^(push|pop) (local|argument|this|that|constant|static|pointer|temp) ([0-9]+)$/';
     }
 }
