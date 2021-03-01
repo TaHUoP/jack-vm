@@ -33,14 +33,19 @@ class Parser
             if (preg_match('/^\s*$/', $line))
                 continue;
 
-            $lines[]= new Instruction($line, $lineNum, $originalLineNum);
+            $lines[]= new VmInstruction($line, $lineNum, $originalLineNum);
             $lineNum++;
         }
 
         $content = '';
-        /** @var Instruction $instruction */
-        foreach ($lines as $key => $instruction) {
-            $content .= ($key != 0 ? PHP_EOL : '') . OperationFactory::getOperation($instruction, basename($filePath, '.vm'))->getAsmInstructions();
+        /** @var VmInstruction $vmInstruction */
+        foreach ($lines as $key => $vmInstruction) {
+            $content .= ($key != 0 ? PHP_EOL : '') .
+                preg_replace(
+                    ['/^ +/', '/\n +/'],
+                    ['', PHP_EOL],
+                    OperationFactory::getOperation($vmInstruction, basename($filePath, '.vm'))->getAsmInstructions()
+                );
         }
 
         return $content;

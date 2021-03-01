@@ -4,9 +4,9 @@
 namespace TaHUoP;
 
 
-class Instruction
+class VmInstruction
 {
-    public string $text;
+    private string $text;
     private int $line;
     private int $originalFileLine;
 

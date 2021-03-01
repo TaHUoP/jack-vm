@@ -7,93 +7,33 @@ namespace TaHUoP\Operations;
 use InvalidArgumentException;
 use TaHUoP\Enums\MemoryAccessOperationType;
 use TaHUoP\Enums\MemorySegment;
+use TaHUoP\VmInstruction;
 
-/*
- * Vm memory access commands implementation examples
-//push local 5
-$a = '
-@LCL
-D=M
-@5
-D=D+A
-
-A=D
-D=M
-
-@SP
-A=M
-M=D
-
-@SP
-M=M+1';
-
-//push constant 5
-$a = '
-@5
-D=A
-
-@SP
-A=M
-M=D
-
-@SP
-M=M+1';
-
-//pop local 5
-$a = '
-@LCL
-D=M
-@5
-D=D+A
-
-@R13
-M=D
-
-@SP
-A=M
-D=M
-
-@R13
-A=M
-M=D
-
-@SP
-M=M-1';
-
-//push static 5
-$a = '
-@Foo.5
-D=M
-
-@SP
-A=M
-M=D
-
-@SP
-M=M+1';
-
-//pop static 5
-$a = '
-@SP
-A=M
-D=M
-
-@Foo.5
-M=D
-
-@SP
-M=M+1';
-*/
-
-class MemoryAccessOperation implements OperationInterface
+class MemoryAccessOperation extends AbstractOperation
 {
-    private MemoryAccessOperationType $type;
-    private MemorySegment $segment;
-    private int $arg;
-    private string $filename;
+    private const WRITE_STACK_TO_D_INSTRUCTIONS =
+        "@SP
+        M=M-1
+        A=M
+        D=M";
 
-    public function __construct(MemoryAccessOperationType $type, MemorySegment $segment, int $arg, string $filename)
-    {
+    private const WRITE_D_TO_STACK_INSTRUCTIONS =
+        "@SP
+        A=M
+        M=D
+        
+        @SP
+        M=M+1";
+
+    public function __construct(
+        VmInstruction $vmInstruction,
+        private MemoryAccessOperationType $type,
+        private MemorySegment $segment,
+        private int $arg,
+        private string $filename
+    ) {
+        parent::__construct($vmInstruction);
+        
         if ($arg < 0)
             throw new InvalidArgumentException('Memory segment argument can\'t be negative.');
 
@@ -105,87 +45,72 @@ class MemoryAccessOperation implements OperationInterface
 
         if ($segment === MemorySegment::POINTER() && !in_array($arg, [0,1]))
             throw new InvalidArgumentException('Pointer memory segment size is exceeded.');
-
-        $this->type = $type;
-        $this->segment = $segment;
-        $this->arg = $arg;
-        $this->filename = $filename;
     }
 
     public function getAsmInstructions(): string
     {
-        $changeStackPositionOperator = $this->type === MemoryAccessOperationType::PUSH() ? '+' : '-';
+        $memoryAddress = match ($this->segment) {
+            MemorySegment::CONSTANT() => $this->arg,
+            MemorySegment::POINTER() => ($this->arg === 0 ? 'THIS' : 'THAT'),
+            MemorySegment::STATIC() => "{$this->filename}.{$this->arg}",
+            MemorySegment::TEMP() => 5 + $this->arg,
+            MemorySegment::LOCAL(), MemorySegment::ARGUMENT(), MemorySegment::THAT(), MemorySegment::THIS() =>
+                $this->segment->getHackSegmentAlias(),
+        };
 
-        if (in_array($this->segment, [MemorySegment::CONSTANT(), MemorySegment::POINTER()], true)) {
-            $memoryAddress = $this->segment === MemorySegment::CONSTANT()
-                ? $this->arg
-                : ($this->arg === 0 ? 'THIS' : 'THAT');
-
-            $typeDependentPart = sprintf(
+        if ($this->segment === MemorySegment::CONSTANT()) {
+            $instructions = sprintf(
                 "@{$memoryAddress}
-                D=%s
-                A=M\n",
-                match ($this->type) {
-                    MemoryAccessOperationType::PUSH() =>
-                        "M
-                        @SP\n",
-                    MemoryAccessOperationType::POP() =>
-                        "A\n"
-                }
+                D=A
+                %s",
+                self::WRITE_D_TO_STACK_INSTRUCTIONS
             );
-        } elseif (in_array($this->segment, [MemorySegment::STATIC(), MemorySegment::TEMP()], true)) {
-            $memoryAddress = $this->segment === MemorySegment::STATIC()
-                ? "{$this->filename}.{$this->arg}"
-                : 5 + $this->arg;
-
-            if ($this->type === MemoryAccessOperationType::PUSH()) {
-                $typeDependentPart =
+        } elseif (in_array($this->segment, [MemorySegment::STATIC(), MemorySegment::TEMP(), MemorySegment::POINTER()], true)) {
+            $instructions = match ($this->type) {
+                MemoryAccessOperationType::PUSH() => sprintf(
                     "@{$memoryAddress}
                     D=M
-                                        
-                    @SP
-                    A=M\n";
-            } else {
-                $typeDependentPart =
-                    "@SP
-                    A=M
-                    D=M
-                    
-                    @{$memoryAddress}\n";
-            }
+                    %s",
+                    self::WRITE_D_TO_STACK_INSTRUCTIONS
+                ),
+                MemoryAccessOperationType::POP() => sprintf(
+                    "%s
+                    @{$memoryAddress}
+                    M=D",
+                    self::WRITE_STACK_TO_D_INSTRUCTIONS
+                ),
+            };
         } else {
-            $typeDependentPart = sprintf(
-                "@{$this->segment->getHackSegmentAlias()}
+            $writeGlobalAddressToD =
+                "@{$memoryAddress}
                 D=M
                 @{$this->arg}
-                D=D+A\n
-                %s
-                A=M\n",
-                match ($this->type) {
-                    MemoryAccessOperationType::PUSH() =>
-                        "A=D
-                        D=M
-                        
-                        @SP\n",
-                    MemoryAccessOperationType::POP() =>
-                        "@R13
-                        M=D            
-                        
-                        @SP
-                        A=M
-                        D=M            
-                        
-                        @R13\n"
-                }
-            );
+                D=D+A";
+
+            $instructions = match ($this->type) {
+                MemoryAccessOperationType::PUSH() => sprintf(
+                    "%s                    
+                    A=D
+                    D=M
+                    %s",
+                    $writeGlobalAddressToD,
+                    self::WRITE_D_TO_STACK_INSTRUCTIONS
+                ),
+                MemoryAccessOperationType::POP() => sprintf(
+                    "%s                   
+                    @R13
+                    M=D
+                    %s
+                    @R13
+                    A=M
+                    M=D",
+                    $writeGlobalAddressToD,
+                    self::WRITE_STACK_TO_D_INSTRUCTIONS
+                ),
+            };
         }
 
-        return
-            "$typeDependentPart
-            M=D        
-            
-            @SP
-            M=M{$changeStackPositionOperator}1\n";
+        return parent::getAsmInstructions() . PHP_EOL . $instructions;
     }
 
     public static function getRegexp(): string

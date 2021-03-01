@@ -5,142 +5,22 @@ namespace TaHUoP\Operations;
 
 
 use TaHUoP\Enums\ArithmeticOperationType;
+use TaHUoP\VmInstruction;
 
-/*
- * Vm memory access commands implementation examples
-//add
-@SP
-A=M
-D=M
-
-@SP
-M=M-1';
-
-@SP
-A=M
-M=D+M
-
-//sub
-@SP
-A=M
-D=M
-
-@SP
-M=M-1';
-
-@SP
-A=M
-M=M-D
-
-//neg
-@SP
-A=M
-M=-M
-
-//and
-@SP
-A=M
-D=M
-
-@SP
-M=M-1';
-
-@SP
-A=M
-M=D&M
-
-//or
-@SP
-A=M
-D=M
-
-@SP
-M=M-1';
-
-@SP
-A=M
-M=D|M
-
-//not
-@SP
-A=M
-M=!M
-
-//eq
-@SP
-A=M
-D=M
-
-@SP
-M=M-1';
-
-@SP
-A=M
-D=D-M
-
-@EQ
-D;JEZ
-
-M=0
-
-(EQ)
-M=1
-
-//gt
-@SP
-A=M
-D=M
-
-@SP
-M=M-1';
-
-@SP
-A=M
-D=D-M
-
-@GT
-D;JLZ
-
-M=0
-
-(GT)
-M=1
-
-//lt
-@SP
-A=M
-D=M
-
-@SP
-M=M-1';
-
-@SP
-A=M
-D=D-M
-
-@LT
-D;JGZ
-
-M=0
-
-(LT)
-M=1
-*/
-
-class ArithmeticOperation implements OperationInterface
+class ArithmeticOperation extends AbstractOperation
 {
-    private ArithmeticOperationType $type;
-
-    public function __construct(ArithmeticOperationType $type)
-    {
-        $this->type = $type;
+    public function __construct(
+        VmInstruction $vmInstruction,
+        private ArithmeticOperationType $type
+    ) {
+        parent::__construct($vmInstruction);
     }
 
     public function getAsmInstructions(): string
     {
-        $instruction =
+        $instructions =
             "@SP
-            A=M\n";
+            A=M-1" . PHP_EOL;
 
         $expression = match ($this->type) {
             ArithmeticOperationType::EQ() => 'JEZ',
@@ -155,16 +35,16 @@ class ArithmeticOperation implements OperationInterface
         };
 
         if (in_array($this->type, [ArithmeticOperationType::NEG(), ArithmeticOperationType::NOT()], true)) {
-            $instruction .= "M={$expression}M";
+            $instructions .= "M={$expression}M";
         } else {
-            $instruction .=
+            $instructions .=
                 "D=M
                 
                 @SP
-                M=M-1';
+                M=M-1
                 
                 @SP
-                A=M\n" .
+                A=M-1" . PHP_EOL .
                 match ($this->type) {
                     ArithmeticOperationType::EQ(), ArithmeticOperationType::GT(), ArithmeticOperationType::LT() =>
                         "D=D-M
@@ -175,14 +55,14 @@ class ArithmeticOperation implements OperationInterface
                         M=0
                         
                         (TRUE)
-                        M=1\n",
+                        M=1",
                     ArithmeticOperationType::ADD(), ArithmeticOperationType::SUB(), ArithmeticOperationType::AND(),
                     ArithmeticOperationType::OR() =>
-                        "M={$expression}\n",
+                        "M={$expression}",
                 };
         }
 
-        return $instruction;
+        return parent::getAsmInstructions() . PHP_EOL . $instructions;
     }
 
     public static function getRegexp(): string
