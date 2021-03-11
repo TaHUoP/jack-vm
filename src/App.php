@@ -16,7 +16,7 @@ class App extends SingleCommandApplication
     {
         parent::__construct();
         $this
-            ->addArgument('inputFilePath', InputArgument::REQUIRED, 'Path to .vm file')
+            ->addArgument('inputPath', InputArgument::REQUIRED, 'Path to .vm file')
             ->addArgument('outputFilePath', InputArgument::OPTIONAL, 'Path to .asm file')
             ->addArgument('memoryLimit', InputArgument::OPTIONAL, 'PHP memory limit. Unlimited by default')
             ->setCode([$this, 'main']);
@@ -28,10 +28,10 @@ class App extends SingleCommandApplication
         try {
             ini_set('memory_limit', $input->getArgument('memoryLimit') ?? -1);
 
-            $inputFilePath = $input->getArgument('inputFilePath');
-            $outputFileContent = $this->parser->parseFile($inputFilePath);
+            $inputPath = $input->getArgument('inputPath');
+            $outputFileContent = $this->parser->parse($inputPath);
 
-            $outputFilePath = $input->getArgument('outputFilePath') ?? $this->getOutputFilePath($inputFilePath);
+            $outputFilePath = $input->getArgument('outputFilePath') ?? $this->getOutputFilePath($inputPath);
             if (file_put_contents($outputFilePath, $outputFileContent) !== false) {
                 $output->writeln("File $outputFilePath was successfully built.");
             } else {
@@ -42,9 +42,9 @@ class App extends SingleCommandApplication
         }
     }
 
-    private function getOutputFilePath(string $inputFilePath): string
+    private function getOutputFilePath(string $inputPath): string
     {
-        $pathInfo = pathinfo($inputFilePath);
+        $pathInfo = pathinfo($inputPath);
         return $pathInfo['dirname'] . DIRECTORY_SEPARATOR . $pathInfo['filename'] . '.asm';
     }
 }

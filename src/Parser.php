@@ -13,21 +13,40 @@ class Parser
     private const COMMENT_REGEX = '/\/\/.*$/';
 
     /**
-     * @param string $filePath
+     * @param string $path
      * @return string
      * @throws Exception
      */
-    public function parseFile(string $filePath): string
+    public function parse(string $path): string
     {
-        if(!str_ends_with($filePath, '.vm'))
-            throw new InvalidArgumentException('Only .vm extension is supported');
+        if(!is_readable($path))
+            throw new InvalidArgumentException("Unable to read from $path");
 
-        if(!is_readable($filePath))
-            throw new InvalidArgumentException("Unable to read from $filePath");
+        if (is_dir($path)) {
+            $files = array_filter(scandir($path), fn(string $file): bool => is_file($file) && str_ends_with($path, '.vm'));
 
+            if (!$files)
+                throw new InvalidArgumentException('Directory doesn\'t contain readable .vm files');
+
+            return implode(PHP_EOL, array_map([$this, 'parseFile'], $files));
+        } else {
+            if(!str_ends_with($path, '.vm'))
+                throw new InvalidArgumentException('Only .vm extension is supported');
+
+            return $this->parseFile($path);
+        }
+    }
+
+    /**
+     * @param string $path
+     * @return string
+     * @throws Exception
+     */
+    private function parseFile(string $path): string
+    {
         $lines = [];
         $lineNum = 0;
-        foreach (file($filePath) as $originalLineNum => $line) {
+        foreach (file($path) as $originalLineNum => $line) {
             $line = trim(preg_replace(self::COMMENT_REGEX, '', $line));
 
             if (preg_match('/^\s*$/', $line))
@@ -44,7 +63,7 @@ class Parser
                 preg_replace(
                     ['/^ +/', '/\n +/'],
                     ['', PHP_EOL],
-                    OperationFactory::getOperation($vmInstruction, basename($filePath, '.vm'))->getAsmInstructions()
+                    OperationFactory::getOperation($vmInstruction, basename($path, '.vm'))->getAsmInstructions()
                 );
         }
 
