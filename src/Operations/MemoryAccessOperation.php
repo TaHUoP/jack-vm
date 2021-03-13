@@ -115,6 +115,21 @@ class MemoryAccessOperation extends AbstractOperation
 
     public static function getRegexp(): string
     {
-        return '/^(push|pop) (local|argument|this|that|constant|static|pointer|temp) ([0-9]+)$/';
+        return sprintf(
+            '/^(%s) (%s) ([0-9]+)$/',
+            implode('|', MemoryAccessOperationType::values()),
+            implode('|', MemorySegment::values()),
+        );
+    }
+
+    public static function getSelf(VmInstruction $vmInstruction, string $filename, array $matches): OperationInterface
+    {
+        return new self(
+            $vmInstruction,
+            MemoryAccessOperationType::get($matches[1]),
+            MemorySegment::get($matches[2]),
+            $matches[3],
+            $filename
+        );
     }
 }

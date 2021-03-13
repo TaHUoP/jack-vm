@@ -23,9 +23,9 @@ class ArithmeticOperation extends AbstractOperation
             A=M-1" . PHP_EOL;
 
         $expression = match ($this->type) {
-            ArithmeticOperationType::EQ() => 'JEZ',
-            ArithmeticOperationType::GT() => 'JLZ',
-            ArithmeticOperationType::LT() => 'JGZ',
+            ArithmeticOperationType::EQ() => 'JEQ',
+            ArithmeticOperationType::GT() => 'JLT',
+            ArithmeticOperationType::LT() => 'JGT',
             ArithmeticOperationType::ADD() => 'D+M',
             ArithmeticOperationType::SUB() => 'M-D',
             ArithmeticOperationType::AND() => 'D&M',
@@ -67,6 +67,15 @@ class ArithmeticOperation extends AbstractOperation
 
     public static function getRegexp(): string
     {
-        return '/^(add|sub|neg|eq|gt|lt|and|or|not)$/';
+        return sprintf(
+            '/^(%s)$/',
+            implode('|', ArithmeticOperationType::values()),
+        );
+
+    }
+
+    public static function getSelf(VmInstruction $vmInstruction, string $filename, array $matches): OperationInterface
+    {
+        return new self($vmInstruction, ArithmeticOperationType::get($matches[1]));
     }
 }

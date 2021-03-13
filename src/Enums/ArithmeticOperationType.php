@@ -4,15 +4,15 @@
 namespace TaHUoP\Enums;
 
 /**
- * @method static MemoryAccessOperationType ADD()
- * @method static MemoryAccessOperationType SUB()
- * @method static MemoryAccessOperationType NEG()
- * @method static MemoryAccessOperationType EQ()
- * @method static MemoryAccessOperationType GT()
- * @method static MemoryAccessOperationType LT()
- * @method static MemoryAccessOperationType AND()
- * @method static MemoryAccessOperationType OR()
- * @method static MemoryAccessOperationType NOT()
+ * @method static ArithmeticOperationType ADD()
+ * @method static ArithmeticOperationType SUB()
+ * @method static ArithmeticOperationType NEG()
+ * @method static ArithmeticOperationType EQ()
+ * @method static ArithmeticOperationType GT()
+ * @method static ArithmeticOperationType LT()
+ * @method static ArithmeticOperationType AND()
+ * @method static ArithmeticOperationType OR()
+ * @method static ArithmeticOperationType NOT()
  */
 class ArithmeticOperationType extends AbstractEnum
 {
