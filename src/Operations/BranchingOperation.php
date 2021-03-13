@@ -45,7 +45,7 @@ class BranchingOperation extends AbstractOperation
         );
     }
 
-    public static function getSelf(VmInstruction $vmInstruction, string $filename, array $matches): OperationInterface
+    public static function getSelf(VmInstruction $vmInstruction, array $matches): OperationInterface
     {
         return new self($vmInstruction, BranchingOperationType::get($matches[1]), $matches[2]);
     }

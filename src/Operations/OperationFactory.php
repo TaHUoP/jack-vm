@@ -12,11 +12,10 @@ class OperationFactory
 {
     /**
      * @param VmInstruction $vmInstruction
-     * @param string $filename
      * @return OperationInterface
      * @throws Exception
      */
-    public static function getOperation(VmInstruction $vmInstruction, string $filename): OperationInterface
+    public static function getOperation(VmInstruction $vmInstruction): OperationInterface
     {
         $operationClasses = array_filter(
             ClassFinder::getClassesInNamespace('TaHUoP\Operations'),
@@ -26,7 +25,7 @@ class OperationFactory
         /** @var AbstractOperation $operationClass */
         foreach ($operationClasses as $operationClass) {
             if (preg_match($operationClass::getRegexp(), $vmInstruction->getText(), $matches)) {
-                return $operationClass::getSelf($vmInstruction, $filename, $matches);
+                return $operationClass::getSelf($vmInstruction, $matches);
             }
         }
 

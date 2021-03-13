@@ -17,20 +17,11 @@ class MemoryAccessOperation extends AbstractOperation
         A=M
         D=M";
 
-    private const WRITE_D_TO_STACK_INSTRUCTIONS =
-        "@SP
-        A=M
-        M=D
-        
-        @SP
-        M=M+1";
-
     public function __construct(
         VmInstruction $vmInstruction,
         private MemoryAccessOperationType $type,
         private MemorySegment $segment,
-        private int $arg,
-        private string $filename
+        private int $arg
     ) {
         parent::__construct($vmInstruction);
         
@@ -52,7 +43,7 @@ class MemoryAccessOperation extends AbstractOperation
         $memoryAddress = match ($this->segment) {
             MemorySegment::CONSTANT() => $this->arg,
             MemorySegment::POINTER() => ($this->arg === 0 ? 'THIS' : 'THAT'),
-            MemorySegment::STATIC() => "{$this->filename}.{$this->arg}",
+            MemorySegment::STATIC() => "{$this->vmInstruction->getFileName()}.{$this->arg}",
             MemorySegment::TEMP() => 5 + $this->arg,
             MemorySegment::LOCAL(), MemorySegment::ARGUMENT(), MemorySegment::THAT(), MemorySegment::THIS() =>
                 $this->segment->getHackSegmentAlias(),
@@ -122,14 +113,13 @@ class MemoryAccessOperation extends AbstractOperation
         );
     }
 
-    public static function getSelf(VmInstruction $vmInstruction, string $filename, array $matches): OperationInterface
+    public static function getSelf(VmInstruction $vmInstruction, array $matches): OperationInterface
     {
         return new self(
             $vmInstruction,
             MemoryAccessOperationType::get($matches[1]),
             MemorySegment::get($matches[2]),
-            $matches[3],
-            $filename
+            $matches[3]
         );
     }
 }

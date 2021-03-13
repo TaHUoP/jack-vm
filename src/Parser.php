@@ -52,7 +52,7 @@ class Parser
             if (preg_match('/^\s*$/', $line))
                 continue;
 
-            $lines[]= new VmInstruction($line, $lineNum, $originalLineNum);
+            $lines[]= new VmInstruction($line, $lineNum, $originalLineNum, basename($path, '.vm'));
             $lineNum++;
         }
 
@@ -63,7 +63,7 @@ class Parser
                 preg_replace(
                     ['/^ +/', '/\n +/'],
                     ['', PHP_EOL],
-                    OperationFactory::getOperation($vmInstruction, basename($path, '.vm'))->getAsmInstructions()
+                    OperationFactory::getOperation($vmInstruction)->getAsmInstructions()
                 );
         }
 

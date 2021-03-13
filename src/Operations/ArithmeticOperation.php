@@ -74,7 +74,7 @@ class ArithmeticOperation extends AbstractOperation
 
     }
 
-    public static function getSelf(VmInstruction $vmInstruction, string $filename, array $matches): OperationInterface
+    public static function getSelf(VmInstruction $vmInstruction, array $matches): OperationInterface
     {
         return new self($vmInstruction, ArithmeticOperationType::get($matches[1]));
     }

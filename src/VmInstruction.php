@@ -6,16 +6,12 @@ namespace TaHUoP;
 
 class VmInstruction
 {
-    private string $text;
-    private int $line;
-    private int $originalFileLine;
-
-    public function __construct(string $text, int $line, int $originalFileLine)
-    {
-        $this->text = $text;
-        $this->line = $line;
-        $this->originalFileLine = $originalFileLine;
-    }
+    public function __construct(
+        private string $text,
+        private int $line,
+        private int $originalFileLine,
+        private string $fileName,
+    ) {}
 
     public function getText(): string
     {
@@ -30,5 +26,10 @@ class VmInstruction
     public function getOriginalFileLine(): int
     {
         return $this->originalFileLine;
+    }
+
+    public function getFileName(): string
+    {
+        return $this->fileName;
     }
 }

@@ -12,5 +12,5 @@ interface OperationInterface
 
     public static function getRegexp(): string;
 
-    public static function getSelf(VmInstruction $vmInstruction, string $filename, array $matches): self;
+    public static function getSelf(VmInstruction $vmInstruction, array $matches): self;
 }
