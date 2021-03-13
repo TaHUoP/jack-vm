@@ -18,9 +18,10 @@ class ArithmeticOperation extends AbstractOperation
 
     public function getAsmInstructions(): string
     {
-        $instructions =
-            "@SP
-            A=M-1" . PHP_EOL;
+        $instructions = [
+            '@SP',
+            'A=M-1',
+        ];
 
         $expression = match ($this->type) {
             ArithmeticOperationType::EQ() => 'JEQ',
@@ -35,34 +36,36 @@ class ArithmeticOperation extends AbstractOperation
         };
 
         if (in_array($this->type, [ArithmeticOperationType::NEG(), ArithmeticOperationType::NOT()], true)) {
-            $instructions .= "M={$expression}M";
+            $instructions[]= "M={$expression}M";
         } else {
-            $instructions .=
-                "D=M
-                
-                @SP
-                M=M-1
-                
-                @SP
-                A=M-1" . PHP_EOL .
-                match ($this->type) {
-                    ArithmeticOperationType::EQ(), ArithmeticOperationType::GT(), ArithmeticOperationType::LT() =>
-                        "D=D-M
+            $instructions = [...$instructions,
+                'D=M',
+
+                '@SP',
+                'M=M-1',
+
+                '@SP',
+                'A=M-1',
+                ...match ($this->type) {
+                    ArithmeticOperationType::EQ(), ArithmeticOperationType::GT(), ArithmeticOperationType::LT() => [
+                        'D=D-M',
                         
-                        @TRUE
-                        D;{$expression}
+                        '@TRUE',
+                        "D;{$expression}",
                         
-                        M=0
+                        'M=0',
                         
-                        (TRUE)
-                        M=1",
+                        '(TRUE)',
+                        'M=1'
+                    ],
                     ArithmeticOperationType::ADD(), ArithmeticOperationType::SUB(), ArithmeticOperationType::AND(),
                     ArithmeticOperationType::OR() =>
-                        "M={$expression}",
-                };
+                        ["M={$expression}"],
+                }
+            ];
         }
 
-        return parent::getAsmInstructions() . PHP_EOL . $instructions;
+        return implode(PHP_EOL, [parent::getAsmInstructions(), ...$instructions]);
     }
 
     public static function getRegexp(): string

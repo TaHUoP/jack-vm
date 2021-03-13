@@ -11,11 +11,12 @@ use TaHUoP\VmInstruction;
 
 class MemoryAccessOperation extends AbstractOperation
 {
-    private const WRITE_STACK_TO_D_INSTRUCTIONS =
-        "@SP
-        M=M-1
-        A=M
-        D=M";
+    private const WRITE_STACK_TO_D_INSTRUCTIONS = [
+        '@SP',
+        'M=M-1',
+        'A=M',
+        'D=M',
+    ];
 
     public function __construct(
         VmInstruction $vmInstruction,
@@ -50,58 +51,52 @@ class MemoryAccessOperation extends AbstractOperation
         };
 
         if ($this->segment === MemorySegment::CONSTANT()) {
-            $instructions = sprintf(
-                "@{$memoryAddress}
-                D=A
-                %s",
-                self::WRITE_D_TO_STACK_INSTRUCTIONS
-            );
+            $instructions = [
+                "@{$memoryAddress}",
+                'D=A',
+                ...self::WRITE_D_TO_STACK_INSTRUCTIONS
+            ];
         } elseif (in_array($this->segment, [MemorySegment::STATIC(), MemorySegment::TEMP(), MemorySegment::POINTER()], true)) {
             $instructions = match ($this->type) {
-                MemoryAccessOperationType::PUSH() => sprintf(
-                    "@{$memoryAddress}
-                    D=M
-                    %s",
-                    self::WRITE_D_TO_STACK_INSTRUCTIONS
-                ),
-                MemoryAccessOperationType::POP() => sprintf(
-                    "%s
-                    @{$memoryAddress}
-                    M=D",
-                    self::WRITE_STACK_TO_D_INSTRUCTIONS
-                ),
+                MemoryAccessOperationType::PUSH() => [
+                    "@{$memoryAddress}",
+                    'D=M',
+                    ...self::WRITE_D_TO_STACK_INSTRUCTIONS
+                ],
+                MemoryAccessOperationType::POP() => [
+                    ...self::WRITE_STACK_TO_D_INSTRUCTIONS,
+                    "@{$memoryAddress}",
+                    'M=D'
+                ],
             };
         } else {
-            $writeGlobalAddressToD =
-                "@{$memoryAddress}
-                D=M
-                @{$this->arg}
-                D=D+A";
+            $writeGlobalAddressToD = [
+                "@{$memoryAddress}",
+                'D=M',
+                "@{$this->arg}",
+                'D=D+A',
+            ];
 
             $instructions = match ($this->type) {
-                MemoryAccessOperationType::PUSH() => sprintf(
-                    "%s                    
-                    A=D
-                    D=M
-                    %s",
-                    $writeGlobalAddressToD,
-                    self::WRITE_D_TO_STACK_INSTRUCTIONS
-                ),
-                MemoryAccessOperationType::POP() => sprintf(
-                    "%s                   
-                    @R13
-                    M=D
-                    %s
-                    @R13
-                    A=M
-                    M=D",
-                    $writeGlobalAddressToD,
-                    self::WRITE_STACK_TO_D_INSTRUCTIONS
-                ),
+                MemoryAccessOperationType::PUSH() => [
+                    ...$writeGlobalAddressToD,
+                    'A=D',
+                    'D=M',
+                    ...self::WRITE_D_TO_STACK_INSTRUCTIONS
+                ],
+                MemoryAccessOperationType::POP() => [
+                    ...$writeGlobalAddressToD,
+                    '@R13',
+                    'M=D',
+                    ...self::WRITE_STACK_TO_D_INSTRUCTIONS,
+                    '@R13',
+                    'A=M',
+                    'M=D',
+                ],
             };
         }
 
-        return parent::getAsmInstructions() . PHP_EOL . $instructions;
+        return implode(PHP_EOL, [parent::getAsmInstructions(), ...$instructions]);
     }
 
     public static function getRegexp(): string

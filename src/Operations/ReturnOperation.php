@@ -11,7 +11,8 @@ class ReturnOperation extends AbstractOperation
     public function getAsmInstructions(): string
     {
         //TODO: implement return instruction commands
-        return parent::getAsmInstructions() . PHP_EOL . "";
+        $instructions = [];
+        return implode(PHP_EOL, [parent::getAsmInstructions(), ...$instructions]);
     }
 
     public static function getRegexp(): string

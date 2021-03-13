@@ -48,7 +48,7 @@ class FunctionOperation extends AbstractOperation
                     fn (string $label): string => implode(PHP_EOL, [
                         "@{$label}",
                         "D=A",
-                        self::WRITE_D_TO_STACK_INSTRUCTIONS
+                        ...self::WRITE_D_TO_STACK_INSTRUCTIONS
                     ]),
                     $stateLabels,
                 ),
@@ -68,7 +68,7 @@ class FunctionOperation extends AbstractOperation
                 'M=D',
                 "//#goto $this->functionName",
                 self::evalVmInstruction("goto $this->functionName"),
-                "({$returnLabel})"
+                self::evalVmInstruction("label $returnLabel"),
             ];
         }
 

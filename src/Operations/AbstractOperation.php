@@ -8,13 +8,14 @@ use TaHUoP\VmInstruction;
 
 abstract class AbstractOperation implements OperationInterface
 {
-    protected const WRITE_D_TO_STACK_INSTRUCTIONS =
-        "@SP
-        A=M
-        M=D
-        
-        @SP
-        M=M+1";
+    protected const WRITE_D_TO_STACK_INSTRUCTIONS = [
+        '@SP',
+        'A=M',
+        'M=D',
+
+        '@SP',
+        'M=M+1',
+    ];
 
     public function __construct(
         public VmInstruction $vmInstruction

@@ -20,21 +20,22 @@ class BranchingOperation extends AbstractOperation
     public function getAsmInstructions(): string
     {
         $instructions = match ($this->type) {
-            BranchingOperationType::LABEL() =>
-                "({$this->label})",
-            BranchingOperationType::GOTO() =>
-                "@{$this->label}
-                0;JMP",
-            BranchingOperationType::IF_GOTO() =>
-                "@SP
-                M=M-1
-                A=M
-                D=M
-                @{$this->label}
-                D;JNE",
+            BranchingOperationType::LABEL() => ["({$this->label})"],
+            BranchingOperationType::GOTO() => [
+                "@{$this->label}",
+                '0;JMP',
+            ],
+            BranchingOperationType::IF_GOTO() => [
+                '@SP',
+                'M=M-1',
+                'A=M',
+                'D=M',
+                "@{$this->label}",
+                'D;JNE',
+            ]
         };
 
-        return parent::getAsmInstructions() . PHP_EOL . $instructions;
+        return implode(PHP_EOL, [parent::getAsmInstructions(), ...$instructions]);
     }
 
     public static function getRegexp(): string
