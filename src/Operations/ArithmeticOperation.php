@@ -38,6 +38,8 @@ class ArithmeticOperation extends AbstractOperation
         if (in_array($this->type, [ArithmeticOperationType::NEG(), ArithmeticOperationType::NOT()], true)) {
             $instructions[]= "M={$expression}M";
         } else {
+            static $calls = 1;
+
             $instructions = [...$instructions,
                 'D=M',
 
@@ -50,19 +52,27 @@ class ArithmeticOperation extends AbstractOperation
                     ArithmeticOperationType::EQ(), ArithmeticOperationType::GT(), ArithmeticOperationType::LT() => [
                         'D=D-M',
                         
-                        '@TRUE',
+                        "@TRUE{$calls}",
                         "D;{$expression}",
-                        
+                        '@SP',
+                        'A=M-1',
                         'M=0',
-                        
-                        '(TRUE)',
-                        'M=1'
+                        "@FALSE{$calls}",
+                        '0;JMP',
+                        "(TRUE{$calls})",
+                        '@SP',
+                        'A=M-1',
+                        'M=1',
+                        "(FALSE{$calls})",
+
                     ],
                     ArithmeticOperationType::ADD(), ArithmeticOperationType::SUB(), ArithmeticOperationType::AND(),
                     ArithmeticOperationType::OR() =>
                         ["M={$expression}"],
                 }
             ];
+
+            $calls++;
         }
 
         return implode(PHP_EOL, [parent::getAsmInstructions(), ...$instructions]);

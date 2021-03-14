@@ -24,6 +24,16 @@ class MemorySegment extends AbstractEnum
     public const POINTER = 'pointer';
     public const TEMP = 'temp';
 
+    /**
+     * @return string[]
+     */
+    public static function getStateSegmentAliases(): array {
+        return array_filter(array_map(
+            fn(string $segment): ?string => self::get($segment)->getHackSegmentAlias(),
+            self::values()
+        ));
+    }
+
     public function getHackSegmentAlias(): ?string
     {
         return match ($this->value) {

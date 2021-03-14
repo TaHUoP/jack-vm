@@ -23,18 +23,30 @@ class Parser
             throw new InvalidArgumentException("Unable to read from $path");
 
         if (is_dir($path)) {
-            $files = array_filter(scandir($path), fn(string $file): bool => is_file($file) && str_ends_with($path, '.vm'));
+            $files = array_filter(
+                array_map(
+                    fn(string $file): string => $path . DIRECTORY_SEPARATOR . $file,
+                    scandir($path)
+                ),
+                fn(string $file): bool => is_file($file) && str_ends_with($file, '.vm')
+            );
 
             if (!$files)
                 throw new InvalidArgumentException('Directory doesn\'t contain readable .vm files');
 
-            return implode(PHP_EOL, array_map([$this, 'parseFile'], $files));
+            $content = implode(PHP_EOL, array_map([$this, 'parseFile'], $files));
         } else {
             if(!str_ends_with($path, '.vm'))
                 throw new InvalidArgumentException('Only .vm extension is supported');
 
-            return $this->parseFile($path);
+            $content = $this->parseFile($path);
         }
+
+        return  preg_replace(
+            ['/^ +/', '/\n +/'],
+            ['', PHP_EOL],
+            $this->getSystemBootstrapInstructions() . PHP_EOL . $content
+        );
     }
 
     /**
@@ -59,14 +71,20 @@ class Parser
         $content = '';
         /** @var VmInstruction $vmInstruction */
         foreach ($lines as $key => $vmInstruction) {
-            $content .= ($key != 0 ? PHP_EOL : '') .
-                preg_replace(
-                    ['/^ +/', '/\n +/'],
-                    ['', PHP_EOL],
-                    OperationFactory::getOperation($vmInstruction)->getAsmInstructions()
-                );
+            $content .= ($key != 0 ? PHP_EOL : '') . OperationFactory::getOperation($vmInstruction)->getAsmInstructions();
         }
 
         return $content;
+    }
+
+    private function getSystemBootstrapInstructions(): string {
+        return implode(PHP_EOL, [
+            '@256',
+            'D=A',
+            '@0',
+            'M=D',
+            OperationFactory::getOperation(new VmInstruction('call Sys.init 0', 0, 0, ''))
+                ->getAsmInstructions(),
+        ]);
     }
 }

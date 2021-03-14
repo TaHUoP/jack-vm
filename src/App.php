@@ -45,6 +45,7 @@ class App extends SingleCommandApplication
     private function getOutputFilePath(string $inputPath): string
     {
         $pathInfo = pathinfo($inputPath);
-        return $pathInfo['dirname'] . DIRECTORY_SEPARATOR . $pathInfo['filename'] . '.asm';
+
+        return (is_dir($inputPath) ? $inputPath : $pathInfo['dirname'] ) . DIRECTORY_SEPARATOR . "{$pathInfo['filename']}.asm";
     }
 }

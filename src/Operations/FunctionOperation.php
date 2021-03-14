@@ -27,19 +27,18 @@ class FunctionOperation extends AbstractOperation
     public function getAsmInstructions(): string
     {
         if ($this->type === FunctionOperationType::FUNCTION()) {
-            //TODO: implement function instruction commands
-            $instructions = [];
+            $instructions = [
+                self::evalVmInstruction("label $this->functionName"),
+                ...array_fill(0, $this->num, self::evalVmInstruction("push constant 0")),
+            ];
         } else {
             $returnLabel = "{$this->vmInstruction->getFileName()}.{$this->functionName}";
-            self::$returnLabelsCount[$returnLabel] += 1;
+            @self::$returnLabelsCount[$returnLabel] += 1;
             $returnLabel .= '.ret.' . self::$returnLabelsCount[$returnLabel];
 
             $stateLabels = [
                 $returnLabel,
-                ...array_filter(array_map(
-                    fn(string $segment): ?string => MemorySegment::get($segment)->getHackSegmentAlias(),
-                    MemorySegment::values()
-                ))
+                ...MemorySegment::getStateSegmentAliases()
             ];
 
             $instructions = [
@@ -47,8 +46,8 @@ class FunctionOperation extends AbstractOperation
                 ...array_map(
                     fn (string $label): string => implode(PHP_EOL, [
                         "@{$label}",
-                        "D=A",
-                        ...self::WRITE_D_TO_STACK_INSTRUCTIONS
+                        $label === $returnLabel ? 'D=A' : 'D=M',
+                        self::WRITE_D_TO_STACK_INSTRUCTIONS
                     ]),
                     $stateLabels,
                 ),
