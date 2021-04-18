@@ -15,7 +15,7 @@ class App extends SingleCommandApplication
     ) {
         parent::__construct();
         $this
-            ->addArgument('inputPath', InputArgument::REQUIRED, 'Path to .vm file')
+            ->addArgument('inputPath', InputArgument::REQUIRED, 'Path to .vm file or directory with .vm files')
             ->addArgument('outputFilePath', InputArgument::OPTIONAL, 'Path to .asm file')
             ->addArgument('memoryLimit', InputArgument::OPTIONAL, 'PHP memory limit. Unlimited by default')
             ->setCode([$this, 'main']);

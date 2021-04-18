@@ -7,7 +7,7 @@
     }
   ],
   "require": {
-    "php": ">=7.4",
+    "php": ">=8.0",
     "elao/enum": "^1.11",
     "haydenpierce/class-finder": "^0.4.3",
     "symfony/console": "^5.1"
