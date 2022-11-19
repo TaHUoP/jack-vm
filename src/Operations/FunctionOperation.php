@@ -4,8 +4,8 @@
 namespace TaHUoP\Operations;
 
 
-use TaHUoP\Enums\FunctionOperationType;
-use TaHUoP\Enums\MemorySegment;
+use TaHUoP\OperationTypes\FunctionOperationType;
+use TaHUoP\OperationTypes\MemorySegment;
 use TaHUoP\VmInstruction;
 
 class FunctionOperation extends AbstractOperation
@@ -17,22 +17,23 @@ class FunctionOperation extends AbstractOperation
 
     public function __construct(
         VmInstruction $vmInstruction,
-        private FunctionOperationType $type,
-        private string $functionName,
-        private string $num
+        private readonly FunctionOperationType $type,
+        private readonly string $functionName,
+        //TODO: add comment explaining what num represents
+        private readonly string $num
     ) {
         parent::__construct($vmInstruction);
     }
 
-    public function getAsmInstructions(): string
+    public function getAsmInstructions(): array
     {
-        if ($this->type === FunctionOperationType::FUNCTION()) {
+        if ($this->type === FunctionOperationType::FUNCTION) {
             $instructions = [
-                self::evalVmInstruction("label $this->functionName"),
-                ...array_fill(0, $this->num, self::evalVmInstruction("push constant 0")),
+                ...self::evalVmInstruction("label $this->functionName"),
+                ...array_merge(...array_fill(0, $this->num, self::evalVmInstruction("push constant 0"))),
             ];
         } else {
-            $returnLabel = "{$this->vmInstruction->getFileName()}.{$this->functionName}";
+            $returnLabel = "{$this->vmInstruction->fileName}.{$this->functionName}";
             @self::$returnLabelsCount[$returnLabel] += 1;
             $returnLabel .= '.ret.' . self::$returnLabelsCount[$returnLabel];
 
@@ -66,24 +67,24 @@ class FunctionOperation extends AbstractOperation
                 '@LCL',
                 'M=D',
                 "//#goto $this->functionName",
-                self::evalVmInstruction("goto $this->functionName"),
-                self::evalVmInstruction("label $returnLabel"),
+                ...self::evalVmInstruction("goto $this->functionName"),
+                ...self::evalVmInstruction("label $returnLabel"),
             ];
         }
 
-        return implode(PHP_EOL, [parent::getAsmInstructions(), ...$instructions]);
+        return $instructions;
     }
 
     public static function getRegexp(): string
     {
         return sprintf(
             '/^(%s) (\S+) (\S+)$/',
-            implode('|', FunctionOperationType::values()),
+            implode('|', array_column(FunctionOperationType::cases(), 'value')),
         );
     }
 
     public static function getSelf(VmInstruction $vmInstruction, array $matches): OperationInterface
     {
-        return new self($vmInstruction, FunctionOperationType::get($matches[1]), $matches[2], $matches[3]);
+        return new self($vmInstruction, FunctionOperationType::from($matches[1]), $matches[2], $matches[3]);
     }
 }

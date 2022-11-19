@@ -11,7 +11,7 @@ use Symfony\Component\Console\Output\OutputInterface;
 class App extends SingleCommandApplication
 {
     public function __construct(
-        private Parser $parser
+        private readonly Parser $parser
     ) {
         parent::__construct();
         $this
@@ -43,7 +43,8 @@ class App extends SingleCommandApplication
     private function getOutputFilePath(string $inputPath): string
     {
         $pathInfo = pathinfo($inputPath);
+        $inputPath = rtrim((is_dir($inputPath) ? $inputPath : $pathInfo['dirname']), DIRECTORY_SEPARATOR);
 
-        return (is_dir($inputPath) ? $inputPath : $pathInfo['dirname'] ) . DIRECTORY_SEPARATOR . "{$pathInfo['filename']}.asm";
+        return $inputPath . DIRECTORY_SEPARATOR . "{$pathInfo['filename']}.asm";
     }
 }

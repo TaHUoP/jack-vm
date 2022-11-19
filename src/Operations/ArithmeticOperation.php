@@ -4,39 +4,27 @@
 namespace TaHUoP\Operations;
 
 
-use TaHUoP\Enums\ArithmeticOperationType;
+use TaHUoP\OperationTypes\ArithmeticOperationType;
 use TaHUoP\VmInstruction;
 
 class ArithmeticOperation extends AbstractOperation
 {
     public function __construct(
         VmInstruction $vmInstruction,
-        private ArithmeticOperationType $type
+        private readonly ArithmeticOperationType $type
     ) {
         parent::__construct($vmInstruction);
     }
 
-    public function getAsmInstructions(): string
+    public function getAsmInstructions(): array
     {
         $instructions = [
             '@SP',
             'A=M-1',
         ];
 
-        $expression = match ($this->type) {
-            ArithmeticOperationType::EQ() => 'JEQ',
-            ArithmeticOperationType::GT() => 'JLT',
-            ArithmeticOperationType::LT() => 'JGT',
-            ArithmeticOperationType::ADD() => 'D+M',
-            ArithmeticOperationType::SUB() => 'M-D',
-            ArithmeticOperationType::AND() => 'D&M',
-            ArithmeticOperationType::OR() => 'D|M',
-            ArithmeticOperationType::NEG() => '-',
-            ArithmeticOperationType::NOT() => '!',
-        };
-
-        if (in_array($this->type, [ArithmeticOperationType::NEG(), ArithmeticOperationType::NOT()], true)) {
-            $instructions[]= "M={$expression}M";
+        if (in_array($this->type, [ArithmeticOperationType::NEG, ArithmeticOperationType::NOT], true)) {
+            $instructions[]= "M={$this->type->getExpression()}M";
         } else {
             static $calls = 1;
 
@@ -49,11 +37,11 @@ class ArithmeticOperation extends AbstractOperation
                 '@SP',
                 'A=M-1',
                 ...match ($this->type) {
-                    ArithmeticOperationType::EQ(), ArithmeticOperationType::GT(), ArithmeticOperationType::LT() => [
+                    ArithmeticOperationType::EQ, ArithmeticOperationType::GT, ArithmeticOperationType::LT => [
                         'D=D-M',
                         
                         "@TRUE{$calls}",
-                        "D;{$expression}",
+                        "D;{$this->type->getExpression()}",
                         '@SP',
                         'A=M-1',
                         'M=0',
@@ -66,29 +54,29 @@ class ArithmeticOperation extends AbstractOperation
                         "(FALSE{$calls})",
 
                     ],
-                    ArithmeticOperationType::ADD(), ArithmeticOperationType::SUB(), ArithmeticOperationType::AND(),
-                    ArithmeticOperationType::OR() =>
-                        ["M={$expression}"],
+                    ArithmeticOperationType::ADD, ArithmeticOperationType::SUB, ArithmeticOperationType::AND,
+                    ArithmeticOperationType::OR =>
+                        ["M={$this->type->getExpression()}"],
                 }
             ];
 
             $calls++;
         }
 
-        return implode(PHP_EOL, [parent::getAsmInstructions(), ...$instructions]);
+        return $instructions;
     }
 
     public static function getRegexp(): string
     {
         return sprintf(
             '/^(%s)$/',
-            implode('|', ArithmeticOperationType::values()),
+            implode('|', array_column(ArithmeticOperationType::cases(), 'value')),
         );
 
     }
 
     public static function getSelf(VmInstruction $vmInstruction, array $matches): OperationInterface
     {
-        return new self($vmInstruction, ArithmeticOperationType::get($matches[1]));
+        return new self($vmInstruction, ArithmeticOperationType::from($matches[1]));
     }
 }

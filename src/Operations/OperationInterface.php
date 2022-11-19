@@ -8,7 +8,7 @@ use TaHUoP\VmInstruction;
 
 interface OperationInterface
 {
-    public function getAsmInstructions(): string;
+    public function getAsmInstructions(): array;
 
     public static function getRegexp(): string;
 

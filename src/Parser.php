@@ -13,8 +13,6 @@ class Parser
     private const COMMENT_REGEX = '/\/\/.*$/';
 
     /**
-     * @param string $path
-     * @return string
      * @throws Exception
      */
     public function parse(string $path): string
@@ -34,27 +32,27 @@ class Parser
             if (!$files)
                 throw new InvalidArgumentException('Directory doesn\'t contain readable .vm files');
 
-            $content = implode(PHP_EOL, array_map([$this, 'parseFile'], $files));
+            $asmInstructions = array_reduce(
+                $files,
+                fn(array $carry, string $path): array => [...$carry, ...$this->parseFileToAsmInstructions($path)],
+                []
+            );
         } else {
             if(!str_ends_with($path, '.vm'))
                 throw new InvalidArgumentException('Only .vm extension is supported');
 
-            $content = $this->parseFile($path);
+            $asmInstructions = $this->parseFileToAsmInstructions($path);
         }
 
-        return  preg_replace(
-            ['/^ +/', '/\n +/'],
-            ['', PHP_EOL],
-            $this->getSystemBootstrapInstructions() . PHP_EOL . $content
-        );
+        $content = implode(PHP_EOL, [...$this->getSystemBootstrapInstructions(), ...$asmInstructions]);
+
+        return $this->sanitizeWhitespaces($content);
     }
 
     /**
-     * @param string $path
-     * @return string
      * @throws Exception
      */
-    private function parseFile(string $path): string
+    private function parseFileToAsmInstructions(string $path): array
     {
         $lines = [];
         $lineNum = 0;
@@ -68,23 +66,35 @@ class Parser
             $lineNum++;
         }
 
-        $content = '';
+        $asmInstructions = [];
         /** @var VmInstruction $vmInstruction */
-        foreach ($lines as $key => $vmInstruction) {
-            $content .= ($key != 0 ? PHP_EOL : '') . OperationFactory::getOperation($vmInstruction)->getAsmInstructions();
+        foreach ($lines as $vmInstruction) {
+            $asmInstructions = [
+                ...$asmInstructions,
+                "//{$vmInstruction->text}",
+                ...OperationFactory::getOperation($vmInstruction)->getAsmInstructions()
+            ];
         }
 
-        return $content;
+        return $asmInstructions;
     }
 
-    private function getSystemBootstrapInstructions(): string {
-        return implode(PHP_EOL, [
+    private function getSystemBootstrapInstructions(): array
+    {
+        $vmInstruction = new VmInstruction('call Sys.init 0', 0, 0, '');
+
+        return [
             '@256',
             'D=A',
             '@0',
             'M=D',
-            OperationFactory::getOperation(new VmInstruction('call Sys.init 0', 0, 0, ''))
-                ->getAsmInstructions(),
-        ]);
+            "//{$vmInstruction->text}",
+            ...OperationFactory::getOperation($vmInstruction)->getAsmInstructions(),
+        ];
+    }
+
+    private function sanitizeWhitespaces(string $content): string
+    {
+        return preg_replace(['/^ +/', '/\n +/'], ['', PHP_EOL], $content);
     }
 }

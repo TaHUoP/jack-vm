@@ -24,11 +24,12 @@ class OperationFactory
 
         /** @var AbstractOperation $operationClass */
         foreach ($operationClasses as $operationClass) {
-            if (preg_match($operationClass::getRegexp(), $vmInstruction->getText(), $matches)) {
+            if (preg_match($operationClass::getRegexp(), $vmInstruction->text, $matches)) {
+                //TODO: extract instantiation logic from operation classes
                 return $operationClass::getSelf($vmInstruction, $matches);
             }
         }
 
-        throw new Exception("Invalid instruction \"{$vmInstruction->getText()}\" on line " . $vmInstruction->getOriginalFileLine() . '.');
+        throw new Exception("Invalid instruction \"{$vmInstruction->text}\" on line $vmInstruction->originalFileLine");
     }
 }

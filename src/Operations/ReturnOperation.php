@@ -4,12 +4,12 @@
 namespace TaHUoP\Operations;
 
 
-use TaHUoP\Enums\MemorySegment;
+use TaHUoP\OperationTypes\MemorySegment;
 use TaHUoP\VmInstruction;
 
 class ReturnOperation extends AbstractOperation
 {
-    public function getAsmInstructions(): string
+    public function getAsmInstructions(): array
     {
         $writeEndFrameValWithOffset = fn(string $dest, int $offset): string => implode(PHP_EOL, [
             "//#save *(endFrame - {$offset}) to {$dest}",
@@ -55,7 +55,8 @@ class ReturnOperation extends AbstractOperation
             'A=M',
             '0;JMP',
         ];
-        return implode(PHP_EOL, [parent::getAsmInstructions(), ...$instructions]);
+
+        return $instructions;
     }
 
     public static function getRegexp(): string

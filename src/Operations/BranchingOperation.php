@@ -4,28 +4,28 @@
 namespace TaHUoP\Operations;
 
 
-use TaHUoP\Enums\BranchingOperationType;
+use TaHUoP\OperationTypes\BranchingOperationType;
 use TaHUoP\VmInstruction;
 
 class BranchingOperation extends AbstractOperation
 {
     public function __construct(
         VmInstruction $vmInstruction,
-        private BranchingOperationType $type,
-        private string $label
+        private readonly BranchingOperationType $type,
+        private readonly string $label
     ) {
         parent::__construct($vmInstruction);
     }
 
-    public function getAsmInstructions(): string
+    public function getAsmInstructions(): array
     {
         $instructions = match ($this->type) {
-            BranchingOperationType::LABEL() => ["({$this->label})"],
-            BranchingOperationType::GOTO() => [
+            BranchingOperationType::LABEL => ["({$this->label})"],
+            BranchingOperationType::GOTO => [
                 "@{$this->label}",
                 '0;JMP',
             ],
-            BranchingOperationType::IF_GOTO() => [
+            BranchingOperationType::IF_GOTO => [
                 '@SP',
                 'M=M-1',
                 'A=M',
@@ -35,19 +35,19 @@ class BranchingOperation extends AbstractOperation
             ]
         };
 
-        return implode(PHP_EOL, [parent::getAsmInstructions(), ...$instructions]);
+        return $instructions;
     }
 
     public static function getRegexp(): string
     {
         return sprintf(
             '/^(%s) (\S+)$/',
-            implode('|', BranchingOperationType::values()),
+            implode('|', array_column(BranchingOperationType::cases(), 'value')),
         );
     }
 
     public static function getSelf(VmInstruction $vmInstruction, array $matches): OperationInterface
     {
-        return new self($vmInstruction, BranchingOperationType::get($matches[1]), $matches[2]);
+        return new self($vmInstruction, BranchingOperationType::from($matches[1]), $matches[2]);
     }
 }
