@@ -13,7 +13,7 @@
   },
   "autoload": {
     "psr-4": {
-      "TaHUoP\\": "src/"
+      "TaHUoP\\JackVM\\": "src/"
     }
   },
   "config": {

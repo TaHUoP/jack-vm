@@ -1,13 +1,13 @@
 <?php
 
 
-namespace TaHUoP\Operations;
+namespace TaHUoP\JackVM\Operations;
 
 
 use InvalidArgumentException;
-use TaHUoP\OperationTypes\MemoryAccessOperationType;
-use TaHUoP\OperationTypes\MemorySegment;
-use TaHUoP\VmInstruction;
+use TaHUoP\JackVM\OperationTypes\MemoryAccessOperationType;
+use TaHUoP\JackVM\OperationTypes\MemorySegment;
+use TaHUoP\JackVM\VmInstruction;
 
 class MemoryAccessOperation extends AbstractOperation
 {
@@ -17,7 +17,7 @@ class MemoryAccessOperation extends AbstractOperation
         A=M
         D=M";
 
-    public function __construct(
+    private function __construct(
         VmInstruction $vmInstruction,
         private readonly MemoryAccessOperationType $type,
         private readonly MemorySegment $segment,

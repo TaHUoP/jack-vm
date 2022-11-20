@@ -2,9 +2,8 @@
 <?php
 require __DIR__.'/vendor/autoload.php';
 
-//TODO: fix namespace to fit with other nand2tetris software
-use TaHUoP\App;
-use TaHUoP\Parser;
+use TaHUoP\JackVM\App;
+use TaHUoP\JackVM\Parser;
 
 (new App(new Parser()))
     ->run();

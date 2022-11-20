@@ -1,15 +1,15 @@
 <?php
 
 
-namespace TaHUoP\Operations;
+namespace TaHUoP\JackVM\Operations;
 
 
-use TaHUoP\OperationTypes\BranchingOperationType;
-use TaHUoP\VmInstruction;
+use TaHUoP\JackVM\OperationTypes\BranchingOperationType;
+use TaHUoP\JackVM\VmInstruction;
 
 class BranchingOperation extends AbstractOperation
 {
-    public function __construct(
+    private function __construct(
         VmInstruction $vmInstruction,
         private readonly BranchingOperationType $type,
         private readonly string $label

@@ -1,15 +1,15 @@
 <?php
 
 
-namespace TaHUoP\Operations;
+namespace TaHUoP\JackVM\Operations;
 
 
-use TaHUoP\OperationTypes\ArithmeticOperationType;
-use TaHUoP\VmInstruction;
+use TaHUoP\JackVM\OperationTypes\ArithmeticOperationType;
+use TaHUoP\JackVM\VmInstruction;
 
 class ArithmeticOperation extends AbstractOperation
 {
-    public function __construct(
+    private function __construct(
         VmInstruction $vmInstruction,
         private readonly ArithmeticOperationType $type
     ) {
@@ -72,7 +72,6 @@ class ArithmeticOperation extends AbstractOperation
             '/^(%s)$/',
             implode('|', array_column(ArithmeticOperationType::cases(), 'value')),
         );
-
     }
 
     public static function getSelf(VmInstruction $vmInstruction, array $matches): OperationInterface

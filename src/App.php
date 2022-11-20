@@ -1,6 +1,6 @@
 <?php
 
-namespace TaHUoP;
+namespace TaHUoP\JackVM;
 
 use Exception;
 use Symfony\Component\Console\Input\InputInterface;

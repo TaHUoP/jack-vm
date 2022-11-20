@@ -1,7 +1,7 @@
 <?php
 
 
-namespace TaHUoP\OperationTypes;
+namespace TaHUoP\JackVM\OperationTypes;
 
 enum BranchingOperationType: string
 {

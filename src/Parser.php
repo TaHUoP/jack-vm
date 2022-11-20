@@ -1,12 +1,12 @@
 <?php
 
 
-namespace TaHUoP;
+namespace TaHUoP\JackVM;
 
 
 use Exception;
 use InvalidArgumentException;
-use TaHUoP\Operations\OperationFactory;
+use TaHUoP\JackVM\Operations\OperationFactory;
 
 class Parser
 {

@@ -1,12 +1,12 @@
 <?php
 
 
-namespace TaHUoP\Operations;
+namespace TaHUoP\JackVM\Operations;
 
 
-use TaHUoP\OperationTypes\FunctionOperationType;
-use TaHUoP\OperationTypes\MemorySegment;
-use TaHUoP\VmInstruction;
+use TaHUoP\JackVM\OperationTypes\FunctionOperationType;
+use TaHUoP\JackVM\OperationTypes\MemorySegment;
+use TaHUoP\JackVM\VmInstruction;
 
 class FunctionOperation extends AbstractOperation
 {
@@ -15,11 +15,11 @@ class FunctionOperation extends AbstractOperation
      */
     private static array $returnLabelsCount = [];
 
-    public function __construct(
+    private function __construct(
         VmInstruction $vmInstruction,
         private readonly FunctionOperationType $type,
         private readonly string $functionName,
-        //TODO: add comment explaining what num represents
+        //for function call represents number of args, for function declaration - number of local variables
         private readonly string $num
     ) {
         parent::__construct($vmInstruction);

@@ -1,10 +1,10 @@
 <?php
 
 
-namespace TaHUoP\Operations;
+namespace TaHUoP\JackVM\Operations;
 
 
-use TaHUoP\VmInstruction;
+use TaHUoP\JackVM\VmInstruction;
 
 interface OperationInterface
 {

@@ -1,12 +1,12 @@
 <?php
 
 
-namespace TaHUoP\Operations;
+namespace TaHUoP\JackVM\Operations;
 
 
 use Exception;
 use HaydenPierce\ClassFinder\ClassFinder;
-use TaHUoP\VmInstruction;
+use TaHUoP\JackVM\VmInstruction;
 
 class OperationFactory
 {
@@ -18,14 +18,13 @@ class OperationFactory
     public static function getOperation(VmInstruction $vmInstruction): OperationInterface
     {
         $operationClasses = array_filter(
-            ClassFinder::getClassesInNamespace('TaHUoP\Operations'),
+            ClassFinder::getClassesInNamespace('TaHUoP\JackVM\Operations'),
             fn(string $className): bool => is_subclass_of($className, AbstractOperation::class)
         );
 
         /** @var AbstractOperation $operationClass */
         foreach ($operationClasses as $operationClass) {
             if (preg_match($operationClass::getRegexp(), $vmInstruction->text, $matches)) {
-                //TODO: extract instantiation logic from operation classes
                 return $operationClass::getSelf($vmInstruction, $matches);
             }
         }

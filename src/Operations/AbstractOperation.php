@@ -1,10 +1,10 @@
 <?php
 
 
-namespace TaHUoP\Operations;
+namespace TaHUoP\JackVM\Operations;
 
 
-use TaHUoP\VmInstruction;
+use TaHUoP\JackVM\VmInstruction;
 
 abstract class AbstractOperation implements OperationInterface
 {
@@ -16,7 +16,7 @@ abstract class AbstractOperation implements OperationInterface
         @SP
         M=M+1";
 
-    public function __construct(
+    protected function __construct(
         public readonly VmInstruction $vmInstruction
     ){}
 

@@ -1,7 +1,7 @@
 <?php
 
 
-namespace TaHUoP;
+namespace TaHUoP\JackVM;
 
 
 class VmInstruction

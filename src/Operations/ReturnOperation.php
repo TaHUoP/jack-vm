@@ -1,11 +1,11 @@
 <?php
 
 
-namespace TaHUoP\Operations;
+namespace TaHUoP\JackVM\Operations;
 
 
-use TaHUoP\OperationTypes\MemorySegment;
-use TaHUoP\VmInstruction;
+use TaHUoP\JackVM\OperationTypes\MemorySegment;
+use TaHUoP\JackVM\VmInstruction;
 
 class ReturnOperation extends AbstractOperation
 {
